@@ -1,0 +1,29 @@
+build:
+  cuda: "11.8" # TODO: remove this for deploy on replicate
+  python_version: "3.8"
+  system_packages:
+    - "libgl1-mesa-glx"
+    - "libglib2.0-0"
+  python_packages:
+    - "transformers==4.19.2"
+    - "diffusers==0.11.1"
+    - "invisible_watermark==0.1.5"
+    - "basicsr==1.4.2"
+    - "einops==0.6.0"
+    - "omegaconf==2.3.0"
+    - "pytorch_lightning==1.5.9"
+    - "gradio"
+    - "opencv-python"
+    - "pudb"
+    - "imageio"
+    - "imageio-ffmpeg"
+    - "k-diffusion"
+    - "webdataset"
+    - "open-clip-torch"
+    - "kornia"
+    - "safetensors"
+    - "timm"
+  run:
+    - "wget "
+
+predict: "predict.py:Predictor"
