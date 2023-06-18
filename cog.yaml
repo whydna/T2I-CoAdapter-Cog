@@ -1,4 +1,5 @@
 build:
+  gpu: true
   cuda: "11.8" # TODO: remove this for deploy on replicate
   python_version: "3.8"
   system_packages:
@@ -23,7 +24,5 @@ build:
     - "kornia"
     - "safetensors"
     - "timm"
-  run:
-    - "wget "
 
 predict: "predict.py:Predictor"

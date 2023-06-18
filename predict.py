@@ -83,7 +83,7 @@ class Predictor(BasePredictor):
         resize_short_edge: int = Input(description="Image resolution", default=512),
         scale: float = Input(description="Guidance Scale (CFG)", default=7.5),
         steps: float = Input(description="Steps", default=50),
-        seed: int = Input(description="Seed", value=42),
+        seed: int = Input(description="Seed", default=42),
         cond_tau : float = Input(
             description="timestamp parameter that determines until which step the adapter is applied",
             default=1.0
