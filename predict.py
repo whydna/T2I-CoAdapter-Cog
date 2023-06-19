@@ -2,6 +2,8 @@ from cog import BasePredictor, File, Path, Input
 import tempfile
 import os
 from typing import List
+from PIL import Image
+import numpy
 
 # demo inspired by https://huggingface.co/spaces/lambdalabs/image-mixer-demo
 import argparse
@@ -89,17 +91,26 @@ class Predictor(BasePredictor):
             default=1.0
         )
     ) -> List[Path]:
-        btns = ["Image","Image","Image","Image","Image"]
+        # ['style', 'sketch', 'color', 'depth', 'canny']
+        btns = ["Nothing","Nothing","Nothing","Image","Nothing"]
         # source image - order matters (see supported_conds)
-        ims1 = [style_img,sketch_img,color_img,depth_img,canny_img]
+        ims1 = [
+            numpy.array(Image.open(style_img).convert('RGB')) if style_img else None,
+            numpy.array(Image.open(sketch_img).convert('RGB')) if sketch_img else None,
+            numpy.array(Image.open(color_img).convert('RGB')) if color_img else None,
+            numpy.array(Image.open(depth_img).convert('RGB')) if depth_img else None,
+            numpy.array(Image.open(canny_img).convert('RGB')) if canny_img else None,
+        ]
         # conditioned images
         ims2 = [None,None,None,None,None]
-        cond_weights = [style_weight,sketch_weight,color_weight,depth_weight,canny_weight
-                        ]
+        cond_weights = [style_weight,sketch_weight,color_weight,depth_weight,canny_weight]
         inps = list(chain(btns, ims1, ims2, cond_weights))
         inps.extend([prompt, neg_prompt, scale, n_samples, seed, steps, resize_short_edge, cond_tau])
 
-        [outputs, conds] = self.run(inps)
+        [outputs, conds] = self.run(*inps)
+
+        print(outputs)
+        print(conds)
         
         output_dir = Path(tempfile.mkdtemp())
 
@@ -107,17 +118,20 @@ class Predictor(BasePredictor):
 
         for i, output in enumerate(outputs):
             path = os.path.join(output_dir, f'{i:05}_output.png') 
-            output_paths.append(path)
             cv2.imwrite(path, output)
+            output_paths.append(Path(path))
 
         for i, cond in enumerate(conds):
             path = os.path.join(output_dir, f'{i:05}_cond.png') 
-            output_paths.append(path)
             cv2.imwrite(path, cond)
+            output_paths.append(Path(path))
+
+        print(output_paths)
 
         return output_paths
 
-    def run(*args):
+    def run(self, *args):
+        print(args)
         with torch.inference_mode(), \
                 sd_model.ema_scope(), \
                 autocast('cuda'):
@@ -125,6 +139,8 @@ class Predictor(BasePredictor):
             inps = []
             for i in range(0, len(args) - 8, len(supported_cond)):
                 inps.append(args[i:i + len(supported_cond)])
+
+            print(inps)
 
             opt = copy.deepcopy(global_opt)
             opt.prompt, opt.neg_prompt, opt.scale, opt.n_samples, opt.seed, opt.steps, opt.resize_short_edge, opt.cond_tau \
