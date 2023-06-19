@@ -92,7 +92,13 @@ class Predictor(BasePredictor):
         )
     ) -> List[Path]:
         # ['style', 'sketch', 'color', 'depth', 'canny']
-        btns = ["Nothing","Nothing","Nothing","Image","Nothing"]
+        btns = [
+            "Image" if style_img else "Nothing",
+            "Image" if sketch_img else "Nothing",
+            "Image" if color_img else "Nothing",
+            "Image" if depth_img else "Nothing",
+            "Image" if canny_img else "Nothing",
+        ]
         # source image - order matters (see supported_conds)
         ims1 = [
             numpy.array(Image.open(style_img).convert('RGB')) if style_img else None,
@@ -109,8 +115,7 @@ class Predictor(BasePredictor):
 
         [outputs, conds] = self.run(*inps)
 
-        print(outputs)
-        print(conds)
+        print(f"Returned {len(outputs)} outputs and {len(conds)} conds")
         
         output_dir = Path(tempfile.mkdtemp())
 
@@ -122,7 +127,7 @@ class Predictor(BasePredictor):
             output_paths.append(Path(path))
 
         for i, cond in enumerate(conds):
-            path = os.path.join(output_dir, f'{i:05}_cond.png') 
+            path = os.path.join(output_dir, f'{i:05}_${cond}.png') 
             cv2.imwrite(path, cond)
             output_paths.append(Path(path))
 
